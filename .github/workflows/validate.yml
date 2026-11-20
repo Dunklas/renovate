@@ -1,0 +1,20 @@
+name: Validate Renovate preset
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - run: npx --yes --package renovate@44.256.0 -- renovate-config-validator --no-global --strict default.json
