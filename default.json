@@ -1,0 +1,90 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "schedule": [
+    "* 0-5 * * 1"
+  ],
+  "updateNotScheduled": false,
+  "prConcurrentLimit": 6,
+  "vulnerabilityAlerts": {
+    "schedule": [],
+    "updateNotScheduled": true
+  },
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Track the .NET SDK until the mise manager supports dotnet",
+      "managerFilePatterns": [
+        "/(^|/)(\\.?mise(?:\\.[^/]+)?\\.toml|(?:\\.?mise|\\.config/mise)/config(?:\\.[^/]+)?\\.toml)$/"
+      ],
+      "matchStrings": [
+        "(?:^|\\n)[ \\t]*dotnet[ \\t]*=[ \\t]*[\"'](?<currentValue>\\d+\\.\\d+\\.\\d+)[\"']"
+      ],
+      "depNameTemplate": "dotnet-sdk",
+      "datasourceTemplate": "dotnet-version"
+    },
+    {
+      "customType": "regex",
+      "description": "Track dotnet-ef installed directly in Dockerfiles",
+      "managerFilePatterns": [
+        "/(^|/)(?:Dockerfile(?:\\.[^/]+)?|[^/]+\\.dockerfile)$/"
+      ],
+      "matchStrings": [
+        "dotnet tool install[ \\t]+(?:--global|-g)[ \\t]+(?<depName>dotnet-ef)[ \\t]+--version[ \\t]+(?<currentValue>\\d+\\.\\d+\\.\\d+)\\b"
+      ],
+      "datasourceTemplate": "nuget",
+      "versioningTemplate": "semver"
+    }
+  ],
+  "packageRules": [
+    {
+      "matchPackageNames": [
+        "*"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
+      "groupName": "{{manager}} non-major dependencies",
+      "groupSlug": "{{manager}}-minor-patch"
+    },
+    {
+      "description": "Use custom extraction for the unsupported mise dotnet tool",
+      "matchManagers": [
+        "mise"
+      ],
+      "matchDepNames": [
+        "dotnet"
+      ],
+      "enabled": false
+    },
+    {
+      "matchDatasources": [
+        "dotnet-version",
+        "docker"
+      ],
+      "matchPackageNames": [
+        "dotnet-sdk",
+        "mcr.microsoft.com/dotnet/**"
+      ],
+      "separateMajorMinor": true,
+      "groupName": ".NET Platform",
+      "groupSlug": "dotnet-platform"
+    },
+    {
+      "matchDatasources": [
+        "nuget"
+      ],
+      "matchPackageNames": [
+        "dotnet-ef",
+        "Microsoft.EntityFrameworkCore",
+        "Microsoft.EntityFrameworkCore.*"
+      ],
+      "separateMajorMinor": true,
+      "groupName": "EF Core",
+      "groupSlug": "ef-core"
+    }
+  ]
+}
